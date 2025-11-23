@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ffdde1;
+            color: white;
+            overflow: hidden;
+        }
+        .start-screen {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; height: 100vh; text-align: center;
+        }
+        .start-screen h1 {
+            font-size: 3.5em; color: #d13063;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        #startButton {
+            padding: 15px 35px; font-size: 1.8em; cursor: pointer;
+            border: none; border-radius: 50px;
+            background-image: linear-gradient(45deg, #ff9a8b 0%, #ff6a88 100%);
+            color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #startButton:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+
+        .main-content {
+            display: none; position: relative; width: 100vw; height: 100vh;
+            background-image: linear-gradient(to top, #ff9a8b 0%, #ff6a88 100%);
+        }
+        
+        .lyric-container {
+            position: absolute; top: 50%; left: 50%; width: 90%;
+            font-size: 4em; font-weight: bold; text-align: center;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.6); color: #fff; z-index: 10;
+            opacity: 0; transform: translate(-50%, 50px);
+            transition: opacity 0.5s ease-in-out, transform 0.6s ease-in-out;
+        }
+        .lyric-container.visible { opacity: 1; transform: translate(-50%, -50%); }
+        .lyric-container.lyric-out { opacity: 0; transform: translate(-50%, -100px); }
+
+        .lyric-image {
+            height: 70px; vertical-align: middle; margin-left: 15px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .final-message {
+            display: none; position: relative; justify-content: center; align-items: center;
+            height: 100vh; background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+            overflow: hidden;
+        }
+        .final-message p {
+            font-size: 3.5em; color: #d13063;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 5;
+        }
+        
+        .hearts, .final-hearts, #sparkle-container, #rain-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;
+        }
+        .hearts { z-index: 1; } #sparkle-container { z-index: 2; }
+        #rain-container { z-index: 3; display: none; } .final-hearts { z-index: 1; }
+
+        #sunlight-effect {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 50% -40%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 224, 0.8) 30%, transparent 60%);
+            opacity: 0;
+            transition: opacity 1.5s ease-in;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .falling-sun {
+            position: absolute; top: -150px; left: 50%;
+            transform: translateX(-50%); width: 150px; height: 150px;
+            background-image: url('https://i.ibb.co/2YKgYS32/pngtree-sun1-png-image-5921591.png');
+            background-size: contain; background-repeat: no-repeat;
+            z-index: 15;
+            animation: fall-and-shake 2s ease-in-out forwards;
+        }
+        
+        .heart {
+            position: absolute; list-style: none; width: 20px; height: 20px;
+            background: rgba(255, 255, 255, 0.2); bottom: -150px;
+            animation: fall 25s infinite linear;
+        }
+        .heart:before, .heart:after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            background: rgba(255, 255, 255, 0.2); border-radius: 50%;
+        }
+        .heart:before { top: -10px; left: 0; } .heart:after { top: 0; left: -10px; }
+
+        .final-heart {
+            position: absolute; width: 30px; height: 30px; opacity: 0;
+            bottom: -50px; animation: floatUp 10s infinite ease-in;
+        }
+        .final-heart::before, .final-heart::after {
+            content: ""; position: absolute; width: 30px; height: 30px;
+            background: #e02d2d; border-radius: 50px 50px 0 0;
+            transform: rotate(-45deg); transform-origin: 0 100%;
+        }
+        .final-heart::after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
+
+        .raindrop {
+            position: absolute; bottom: 100%; width: 1.5px; height: 60px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.4));
+            animation: drop 0.7s linear infinite;
+        }
+        .sparkle {
+            position: absolute; background-color: white; border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 15px #fff;
+            animation: sparkle-anim 1s ease-in-out forwards;
+        }
+
+        @keyframes fall-and-shake {0%{top:-150px;transform:translateX(-50%) rotate(0deg)} 50%{transform:translateX(-45%) rotate(180deg)} 100%{top:110vh;transform:translateX(-50%) rotate(360deg)}}
+        @keyframes drop { to { transform: translateY(105vh); } }
+        @keyframes sparkle-anim {0%{transform:scale(0);opacity:0} 50%{transform:scale(1.2);opacity:1} 100%{transform:scale(0);opacity:0}}
+        @keyframes fall {0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(-120vh) rotate(720deg);opacity:0}}
+        @keyframes floatUp {0%{bottom:-50px;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{bottom:100%;opacity:0}}
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <h1>This is for you</h1>
+        <button id="startButton">For you</button>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <ul class="hearts"></ul>
+        <div id="sparkle-container"></div>
+        <div id="rain-container"></div>
+        <div id="sunlight-effect"></div>
+        <audio id="song" src="song.mp3"></audio>
+        <div class="lyric-container" id="lyrics"></div>
+    </div>
+
+    <div class="final-message" id="finalMessage">
+        <div class="final-hearts">
+            <div class="final-heart"></div><div class="final-heart"></div><div class="final-heart"></div>
+        </div>
+        <p>made by arpit</p>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton'), mainContent = document.getElementById('mainContent'),
+              finalMessage = document.getElementById('finalMessage'), song = document.getElementById('song'),
+              lyricsContainer = document.getElementById('lyrics'), rainContainer = document.getElementById('rain-container'),
+              sunlightEffect = document.getElementById('sunlight-effect');
+        let sparkleInterval;
+
+        // --- TIMELINE DELAYED AGAIN FOR PERFECT SYNC ---
+        const timeline = [
+            { time: 4800, lyric: "what can you <span style='color: #ffeb3b;'>do for me</span> Arpit?" }, { time: 7400, lyric: "" },
+            { time: 8900, lyric: "Tu <span style='color: #ffeb3b;'>maange</span> sardi me <img src='https://i.ibb.co/Mkdd7f4w/images-14.jpg' class='lyric-image'>" },
+            { time: 11900, lyric: "jo <span style='color: #87ceeb;'>maange</span> garmi me <img src='https://i.ibb.co/XfT4z4ZS/images-15.jpg' class='lyric-image'>" },
+            { time: 14900, action: 'start_rain' }, { time: 14900, lyric: "tu <span style='color: #98fb98;'>baarish</span> me agar keh de" },
+            { time: 17900, action: 'stop_rain' }, { time: 17900, action: 'start_sunlight' },
+            { time: 17900, lyric: "jaa mere liye tu <span style='color: #ffeb3b;'>dhoop</span> khila <img src='https://i.ibb.co/2YKgYS32/pngtree-sun1-png-image-5921591.png' class='lyric-image'>" },
+            { time: 21100, action: 'stop_sunlight' }, { time: 21100, lyric: "To main <span style='color: #ffa07a;'>sooraj...</span>" },
+            { time: 29900, action: 'drop_sun' },
+            { time: 29900, lyric: "toh me <span style='color: #ffeb3b;'>sooraj</span> ko <span style='color: #ff6347;'>jhatak</span> dunga" },
+            { time: 32900, lyric: "toh me <span style='color: #87ceeb;'>sawan</span> ko <span style='color: #add8e6;'>gatak</span> lunga" },
+            { time: 35900, lyric: "to saare <span style='color: #fffacd;'>taaro</span> sang <span style='color: #d3d3d3;'>chanda</span> <img src='https://i.ibb.co/mVkqq6jM/3d-metal-star-isolated-1308-117760.jpg' class='lyric-image'>" },
+            { time: 38900, lyric: "main teri <span style='color: #ffb6c1;'>god</span> me <span style='color: #ff69b4;'>rakh</span> dunga" },
+            { time: 42500, action: 'end_screen' }
+        ];
+
+        function updateLyrics(html) {
+            lyricsContainer.classList.add('lyric-out'); lyricsContainer.classList.remove('visible');
+            setTimeout(() => {
+                lyricsContainer.innerHTML = html; lyricsContainer.classList.remove('lyric-out');
+                if (html) { setTimeout(() => lyricsContainer.classList.add('visible'), 50); }
+            }, 600);
+        }
+        
+        function createSparkle() {
+            const sparkle = document.createElement('div'); sparkle.className = 'sparkle';
+            const size = Math.random() * 4 + 2;
+            sparkle.style.width = `${size}px`; sparkle.style.height = `${size}px`;
+            sparkle.style.top = `${Math.random() * 100}%`; sparkle.style.left = `${Math.random() * 100}%`;
+            document.getElementById('sparkle-container').appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        startButton.addEventListener('click', () => {
+            document.getElementById('startScreen').style.display = 'none';
+            mainContent.style.display = 'block'; song.play();
+            sparkleInterval = setInterval(createSparkle, 200);
+            let i = 0;
+            function runTimeline() {
+                if (i >= timeline.length) return;
+                const current = timeline[i], next = timeline[i+1];
+                if (current.action) handleAction(current.action); else updateLyrics(current.lyric);
+                if(next) setTimeout(runTimeline, next.time - current.time);
+                i++;
+            } runTimeline();
+        });
+        
+        function handleAction(action) {
+            switch(action) {
+                case 'start_rain':
+                    rainContainer.innerHTML = ''; let i = 0;
+                    while (i < 100) {
+                        const drop = document.createElement('div'); drop.className = 'raindrop';
+                        drop.style.left = `${Math.random()*100}%`; drop.style.animationDelay = `${Math.random()*2}s`;
+                        drop.style.animationDuration = `${0.5 + Math.random()*0.5}s`;
+                        rainContainer.appendChild(drop); i++;
+                    } rainContainer.style.display = 'block'; break;
+                case 'stop_rain': rainContainer.style.display = 'none'; rainContainer.innerHTML = ''; break;
+                case 'start_sunlight': sunlightEffect.style.opacity = '1'; break;
+                case 'stop_sunlight': sunlightEffect.style.opacity = '0'; break;
+                case 'drop_sun':
+                    const sun = document.createElement('div'); sun.className = 'falling-sun';
+                    mainContent.appendChild(sun);
+                    setTimeout(() => sun.remove(), 2000); break;
+                case 'end_screen':
+                    mainContent.style.display = 'none'; finalMessage.style.display = 'flex';
+                    clearInterval(sparkleInterval); break;
+            }
+        }
+    </script>
+</body>
+</html>
